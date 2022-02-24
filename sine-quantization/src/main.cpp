@@ -6,11 +6,13 @@
  * then only the 6 most significant bits will remain.
 */
 uint8_t remove_opts[] = {4, 5, 6 , 7};
-uint8_t remove_amnt = remove_opts[0];
-uint16_t adc_read;
+uint8_t remove_amnt = remove_opts[3];
+uint32_t adc_read;
 Adafruit_MCP4725 dac;
 
 void setup() {
+  dac.begin(0x60);
+
   /**
    * Timer 0 setup
    * Toggle D6 (PD6) on compare match. Operate in CTC (as counter, clearing it on compare).
@@ -28,11 +30,13 @@ void setup() {
   ADCSRA |= 0x04;
 }
 
-void loop() {}
+void loop() {
+  dac.setVoltage(adc_read, false);
+}
 
 ISR(TIMER0_COMPA_vect) {
-  adc_read = analogRead(PC0);
-  adc_read = adc_read >> remove_amnt;
-  adc_read = adc_read << remove_amnt;
-  dac.setVoltage(adc_read * 4, false);
+  adc_read = analogRead(A0);
+  adc_read = (adc_read >> remove_amnt);
+  adc_read = (adc_read << remove_amnt);
+  adc_read *= 4;
 }
